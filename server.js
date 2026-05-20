@@ -74,6 +74,7 @@ app.use('/api/announcements', announcementRoutes);
 app.use('/api/quiz', quizRoutes);
 app.use('/api/certificate', certificateRoutes);
 app.use('/api/payment', paymentRoutes);
+app.use('/api/live', require('./routes/LiveRoutes'));
 
 // Error Handling Middleware (must be after all routes)
 app.use(notFound);

@@ -38,6 +38,22 @@ const quizSchema = new mongoose.Schema({
     }
 });
 
+const mentorSchema = new mongoose.Schema(
+    {
+        name: {
+            type: String,
+            required: [true, 'Please provide mentor name'],
+            trim: true
+        },
+        role: {
+            type: String,
+            required: [true, 'Please provide mentor role'],
+            trim: true
+        }
+    },
+    { _id: false }
+);
+
 const courseSchema = new mongoose.Schema(
     {
         title: {
@@ -49,6 +65,11 @@ const courseSchema = new mongoose.Schema(
         description: {
             type: String,
             required: [true, 'Please provide a course description']
+        },
+        originalPrice: {
+            type: Number,
+            default: 4999,
+            min: [0, 'Original price cannot be negative']
         },
         price: {
             type: Number,
@@ -94,6 +115,10 @@ const courseSchema = new mongoose.Schema(
         },
         modules: {
             type: [moduleSchema],
+            default: []
+        },
+        mentors: {
+            type: [mentorSchema],
             default: []
         },
         quiz: {

@@ -61,8 +61,9 @@ exports.createCheckoutOrder = async (req, res) => {
             });
         }
 
-        const { courseId } = req.body;
+        const { courseId, couponCode } = req.body;
         console.log('Checkout request for courseId:', courseId);
+        console.log('Coupon code provided:', couponCode || 'none');
 
         // Validate courseId
         if (!courseId) {
@@ -84,24 +85,27 @@ exports.createCheckoutOrder = async (req, res) => {
 
         console.log('Course found:', course.title, 'Price:', course.price);
 
-        // Validate course price
-        if (!course.price || course.price <= 0) {
-            return res.status(400).json({
-                success: false,
-                message: 'Invalid course price'
-            });
-        }
+        const basePrice = 3499;
+        const hasValidCoupon =
+            typeof couponCode === 'string' && couponCode.trim().toLowerCase() === 'code2699';
+        const finalPrice = hasValidCoupon ? 2699 : basePrice;
+
+        console.log('Base price:', basePrice);
+        console.log('Coupon applied:', hasValidCoupon);
+        console.log('Final payable price:', finalPrice);
 
         // Create Razorpay order with strict string conversion to avoid undefined values
         const userId = (req.user._id || req.user.id).toString();
         const options = {
-            amount: Math.round(course.price * 100), // Amount in paise (Razorpay expects amount in smallest currency unit)
+            amount: finalPrice * 100, // Amount in paise (Razorpay expects amount in smallest currency unit)
             currency: 'INR',
             receipt: `rcpt_${Date.now()}`, // Shortened to stay under Razorpay's 40-character limit
             notes: {
                 courseId: course._id.toString(),
                 courseTitle: course.title || 'N/A',
                 userId: userId,
+                couponCode: hasValidCoupon ? couponCode : undefined,
+                finalPrice: finalPrice,
             }
         };
 
@@ -128,7 +132,9 @@ exports.createCheckoutOrder = async (req, res) => {
             amount: order.amount,
             currency: order.currency,
             courseTitle: course.title,
-            coursePrice: course.price,
+            coursePrice: finalPrice,
+            finalPrice: finalPrice,
+            couponApplied: hasValidCoupon,
         });
 
     } catch (error) {
